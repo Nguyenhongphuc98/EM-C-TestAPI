@@ -8,6 +8,12 @@ const io = require('socket.io-client');
 
 const USERNAME = "admin@admin.com";
 const PASSWORD = "admin@2024!#$";
+
+const USER_USERNAME = "phucdeptraii@gmail.com";
+const USER_PASSWOD = "hehe_!passs";
+
+let createdUserID = 2;
+
 let ENCRYPTKEY = "";
 
 class DataTransform {
@@ -54,8 +60,8 @@ function generateRandomString(length) {
 }
 
 
-// const Host = "http://164.90.186.39:8080";
-const Host = "http://localhost:8080";
+const Host = "http://164.90.186.39:8080";
+// const Host = "http://localhost:8080";
 
 
 function startSocket(sessionId) {
@@ -83,26 +89,26 @@ function startSocket(sessionId) {
   });
 }
 
-function reqlogin() {
+function reqlogin(username = USERNAME, password = PASSWORD) {
   return fetch(Host + "/api/v1/reqlogin", {
     method: 'get'
   }).then(v => {
     // console.log('req login ', v);
-    v.json().then(resp => {
+    return v.json().then(resp => {
 
       const pubKey = resp.data.publicKey;
       ENCRYPTKEY = generateRandomString(16);
 
       const auth = {
-        username: USERNAME,
-        password: PASSWORD,
+        username,
+        password,
         key: ENCRYPTKEY,
       };
 
       const sessionId = resp.data.sessionId;
       const authenData = DataTransform.encryptWithPublicKey(JSON.stringify(auth), pubKey);
       console.log('req login', sessionId, ' || ',  authenData);
-      login(sessionId, authenData);
+      return [sessionId, authenData];
     });
   }).catch(e => {
     console.log('req login err', e);
@@ -110,7 +116,7 @@ function reqlogin() {
 }
 
 function login(sessionId, authenData) {
-  fetch(Host + "/api/v1/login", {
+  return fetch(Host + "/api/v1/login", {
     method: 'post',
     credentials: "include",
     headers: {
@@ -121,18 +127,11 @@ function login(sessionId, authenData) {
       auth: authenData
     })
   }).then(v => {
-    v.json().then(async res => {
+    return v.json().then(async res => {
       console.log('key using to secure data', ENCRYPTKEY);
       console.log('user data raw: ', res);
       console.log('user data: ', DataTransform.aesDecrypt(res.data))
-
-      // authen(sessionId).then(() => logout(sessionId)).then(() => authen(sessionId));
-      startSocket(sessionId);
-
-      setTimeout(() => {
-        logout(sessionId);
-      }, 15000);
-    })
+    });
 
   }).catch(e => {
     console.log('login err', e);
@@ -140,16 +139,16 @@ function login(sessionId, authenData) {
 }
 
 function logout(sessionId) {
-  fetch(Host + "/api/v1/logout", {
+  return fetch(Host + "/api/v1/logout", {
     method: 'post',
     headers: {
       'Content-Type': 'application/json',
       'sessionid': sessionId,
     },
   }).then(v => {
-    v.json().then(res => {
+    return v.json().then(res => {
       console.log('logged out ', res);
-    })
+    });
 
   }).catch(e => {
     console.log('logout err', e);
@@ -174,9 +173,127 @@ function authen(sessionId) {
   });
 }
 
-reqlogin();
+function createUSer(sessionId) {
+  return fetch(Host + "/api/v1/user", {
+    method: "post",
+    headers: {
+      'Content-Type': 'application/json',
+      'sessionid': sessionId,
+    },
+    body: JSON.stringify({
+      data: DataTransform.aesEncrypt({
+        username: USER_USERNAME,
+        password: USER_PASSWOD,
+        displayName: "Phuc dep traii",
+      })
+    })
+  }).then(result => {
+    return result.json().then( v => {
+      const user = DataTransform.aesDecrypt(v.data);
+      createdUserID = user.id;
+      console.log("create user", v,  user);
+    });
+  });
+}
+
+function allUSers(sessionId) {
+  return fetch(Host + "/api/v1/user", {
+    method: "get",
+    headers: {
+      'Content-Type': 'application/json',
+      'sessionid': sessionId,
+    },
+  }).then(result => {
+    return result.json().then( v => {
+      console.log("get users", v,  DataTransform.aesDecrypt(v.data));
+    });
+  });
+}
+
+function updateDispalyName(sessionId) {
+  return fetch(Host + "/api/v1/user/" + createdUserID, {
+    method: "put",
+    headers: {
+      'Content-Type': 'application/json',
+      'sessionid': sessionId,
+    },
+    body: JSON.stringify({
+      data: DataTransform.aesEncrypt({
+        displayName: "new nameeee"
+      })
+    })
+  }).then(result => {
+    return result.json().then( v => {
+      console.log("update users", v,  DataTransform.aesDecrypt(v.data));
+    });
+  });
+}
+
+async function loginAuthLogoutAuth() {
+  const [sessionId, authData] = await reqlogin();
+  await login(sessionId, authData);
+  await authen(sessionId);
+  await logout(sessionId);
+  await authen(sessionId);
+}
+
+async function loginAuthSocketLogout() {
+  const [sessionId, authData] = await reqlogin();
+  await login(sessionId, authData);
+  await authen(sessionId);
+  startSocket(sessionId);
+  setTimeout(() => {
+    logout(sessionId);
+  }, 15000);
+}
+
+async function loginAdminCreateUser() {
+  const [sessionId, authData] = await reqlogin();
+  await login(sessionId, authData);
+  await createUSer(sessionId);
+}
+
+async function loginUserCreateUser() {
+  // Should fail because only admin can create account
+  const [sessionId, authData] = await reqlogin(USER_USERNAME, USER_PASSWOD);
+  await login(sessionId, authData);
+  await createUSer(sessionId);
+}
+
+async function loginAdminGetAllUses() {
+  // Should fail because only admin can create account
+  const [sessionId, authData] = await reqlogin();
+  await login(sessionId, authData);
+  await allUSers(sessionId);
+}
+
+
+async function loginUserGetAllUses() {
+  // Should fail because only admin can get all account
+  const [sessionId, authData] = await reqlogin(USER_USERNAME, USER_PASSWOD);
+  await login(sessionId, authData);
+  await allUSers(sessionId);
+}
+
+
+async function loginUserUpdateMe() {
+  // Should fail because only admin can get all account
+  const [sessionId, authData] = await reqlogin(USER_USERNAME, USER_PASSWOD);
+  await login(sessionId, authData);
+  await updateDispalyName(sessionId);
+}
 
 
 // Keep node running
 const interval = setInterval(() => {
 }, 3000); 
+
+
+// START test
+// loginAuthLogoutAuth();
+// loginAuthSocketLogout();
+// loginUserCreateUser(); // should fail
+// loginAdminCreateUser();
+loginAdminGetAllUses();
+// loginUserGetAllUses(); //should fail
+// loginUserUpdateMe();
