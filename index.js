@@ -3,6 +3,8 @@
 const { publicEncrypt } = require('crypto');
 const hash = require("pbkdf2-password")();
 const { AES, enc } = require("crypto-js");
+const io = require('socket.io-client');
+
 
 const USERNAME = "admin@admin.com";
 const PASSWORD = "admin@2024!#$";
@@ -15,7 +17,7 @@ class DataTransform {
     return ciphertext;
   }
 
-  static aaesDecrypt(encryptedData) {
+  static aesDecrypt(encryptedData) {
     if (Object.keys(encryptedData).length == 0) return encryptedData;
 
     const bytes = AES.decrypt(encryptedData, ENCRYPTKEY);
@@ -55,6 +57,32 @@ function generateRandomString(length) {
 // const Host = "http://164.90.186.39:8080";
 const Host = "http://localhost:8080";
 
+
+function startSocket(sessionId) {
+  const socket = io(Host);
+
+  socket.on('authenticate', (data) => {
+    console.log('Authen', data);
+  });
+
+  socket.on('connect', () => {
+    console.log('Connected to server');
+
+    socket.emit("authenticate", sessionId);
+  });
+
+  // We have 2 chanel: export | weigh
+  // SV Currently fake interval signal to export for temp check.
+  socket.on('export', (data) => {
+    console.log('Receive export data encrypted:', data);
+    console.log('Receive export data raw:', DataTransform.aesDecrypt(data.data));
+  });
+
+  socket.on('disconnect', () => {
+    console.log('Disconnected from server');
+  });
+}
+
 function reqlogin() {
   return fetch(Host + "/api/v1/reqlogin", {
     method: 'get'
@@ -73,8 +101,8 @@ function reqlogin() {
 
       const sessionId = resp.data.sessionId;
       const authenData = DataTransform.encryptWithPublicKey(JSON.stringify(auth), pubKey);
-      console.log('req login', sessionId, ' || ', authenData);
-      login(sessionId, auth);
+      console.log('req login', sessionId, ' || ',  authenData);
+      login(sessionId, authenData);
     });
   }).catch(e => {
     console.log('req login err', e);
@@ -96,9 +124,14 @@ function login(sessionId, authenData) {
     v.json().then(async res => {
       console.log('key using to secure data', ENCRYPTKEY);
       console.log('user data raw: ', res);
-      console.log('user data: ', DataTransform.aaesDecrypt(res.data))
+      console.log('user data: ', DataTransform.aesDecrypt(res.data))
 
-      authen(sessionId).then(() => logout(sessionId)).then(() => authen(sessionId));
+      // authen(sessionId).then(() => logout(sessionId)).then(() => authen(sessionId));
+      startSocket(sessionId);
+
+      setTimeout(() => {
+        logout(sessionId);
+      }, 15000);
     })
 
   }).catch(e => {
@@ -133,7 +166,7 @@ function authen(sessionId) {
   }).then(v => {
     return v.json().then(res => {
       console.log('authen raw: ', res);
-      console.log('authen data: ', DataTransform.aaesDecrypt(res.data));
+      console.log('authen data: ', DataTransform.aesDecrypt(res.data));
     })
 
   }).catch(e => {
@@ -142,3 +175,8 @@ function authen(sessionId) {
 }
 
 reqlogin();
+
+
+// Keep node running
+const interval = setInterval(() => {
+}, 3000); 
