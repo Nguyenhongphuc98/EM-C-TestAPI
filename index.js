@@ -9,8 +9,10 @@ const io = require('socket.io-client');
 const USERNAME = "admin@admin.com";
 const PASSWORD = "admin@2024!#$";
 
-const USER_USERNAME = "phucdeptraii@gmail.com";
+const USER_USERNAME = "phucdeptraiii@gmail.com";
 const USER_PASSWOD = "hehe_!passs";
+// const USER_PASSWOD = "newpassshahaa";
+
 
 let createdUserID = 2;
 
@@ -229,6 +231,26 @@ function updateDispalyName(sessionId) {
   });
 }
 
+function updatePassword(sessionId) {
+  return fetch(Host + "/api/v1/user/" + createdUserID, {
+    method: "put",
+    headers: {
+      'Content-Type': 'application/json',
+      'sessionid': sessionId,
+    },
+    body: JSON.stringify({
+      data: DataTransform.aesEncrypt({
+        password: "newpassshahaa",
+        oldpassword: USER_PASSWOD,
+      })
+    })
+  }).then(result => {
+    return result.json().then( v => {
+      console.log("update users", v,  DataTransform.aesDecrypt(v.data));
+    });
+  });
+}
+
 async function loginAuthLogoutAuth() {
   const [sessionId, authData] = await reqlogin();
   await login(sessionId, authData);
@@ -276,17 +298,24 @@ async function loginUserGetAllUses() {
 }
 
 
-async function loginUserUpdateMe() {
+async function loginUserUpdateDisplaynameMe() {
   // Should fail because only admin can get all account
   const [sessionId, authData] = await reqlogin(USER_USERNAME, USER_PASSWOD);
   await login(sessionId, authData);
   await updateDispalyName(sessionId);
 }
 
+async function loginUserUpdatePassMe() {
+  // Should fail because only admin can get all account
+  const [sessionId, authData] = await reqlogin(USER_USERNAME, USER_PASSWOD);
+  await login(sessionId, authData);
+  await updatePassword(sessionId);
+}
+
 
 // Keep node running
-const interval = setInterval(() => {
-}, 3000); 
+// const interval = setInterval(() => {
+// }, 3000); 
 
 
 // START test
@@ -294,6 +323,8 @@ const interval = setInterval(() => {
 // loginAuthSocketLogout();
 // loginUserCreateUser(); // should fail
 // loginAdminCreateUser();
-loginAdminGetAllUses();
+// loginAdminGetAllUses();
 // loginUserGetAllUses(); //should fail
-// loginUserUpdateMe();
+// loginUserUpdateDisplaynameMe();
+
+loginUserUpdatePassMe();
