@@ -9,9 +9,12 @@ const io = require('socket.io-client');
 const USERNAME = "admin@admin.com";
 const PASSWORD = "admin@2024!#$";
 
-const USER_USERNAME = "phucdeptraiii@gmail.com";
-const USER_PASSWOD = "hehe_!passs";
-// const USER_PASSWOD = "newpassshahaa";
+const USER_USERNAME = "phucdeptrai@gmail.com";
+// const USER_PASSWOD = "hehe_!passs";
+const USER_PASSWOD = "z2SiIVcm";
+
+const Host = "http://164.90.186.39:8080";
+// const Host = "http://localhost:8080";
 
 
 let createdUserID = 2;
@@ -61,9 +64,6 @@ function generateRandomString(length) {
   return result;
 }
 
-
-const Host = "http://164.90.186.39:8080";
-// const Host = "http://localhost:8080";
 
 
 function startSocket(sessionId) {
@@ -241,12 +241,26 @@ function updatePassword(sessionId) {
     body: JSON.stringify({
       data: DataTransform.aesEncrypt({
         password: "newpassshahaa",
-        oldpassword: USER_PASSWOD,
+        oldpassword: "USER_PASSWOD",
       })
     })
   }).then(result => {
     return result.json().then( v => {
       console.log("update users", v,  DataTransform.aesDecrypt(v.data));
+    });
+  });
+}
+
+function resetPassword(sessionId) {
+  return fetch(Host + "/api/v1/admin/reset/" + createdUserID, {
+    method: "get",
+    headers: {
+      'Content-Type': 'application/json',
+      'sessionid': sessionId,
+    },
+  }).then(result => {
+    return result.json().then( v => {
+      console.log("reset pass", v,  DataTransform.aesDecrypt(v.data));
     });
   });
 }
@@ -283,7 +297,6 @@ async function loginUserCreateUser() {
 }
 
 async function loginAdminGetAllUses() {
-  // Should fail because only admin can create account
   const [sessionId, authData] = await reqlogin();
   await login(sessionId, authData);
   await allUSers(sessionId);
@@ -299,17 +312,29 @@ async function loginUserGetAllUses() {
 
 
 async function loginUserUpdateDisplaynameMe() {
-  // Should fail because only admin can get all account
   const [sessionId, authData] = await reqlogin(USER_USERNAME, USER_PASSWOD);
   await login(sessionId, authData);
   await updateDispalyName(sessionId);
 }
 
 async function loginUserUpdatePassMe() {
-  // Should fail because only admin can get all account
   const [sessionId, authData] = await reqlogin(USER_USERNAME, USER_PASSWOD);
   await login(sessionId, authData);
   await updatePassword(sessionId);
+}
+
+async function loginAdminResetPass() {
+  const [sessionId, authData] = await reqlogin();
+  await login(sessionId, authData);
+  await resetPassword(sessionId);
+}
+
+
+async function loginUserResetPass() {
+  // Should fail because only admin can reset pass
+  const [sessionId, authData] = await reqlogin(USER_USERNAME, USER_PASSWOD);
+  await login(sessionId, authData);
+  await resetPassword(sessionId);
 }
 
 
@@ -327,4 +352,7 @@ async function loginUserUpdatePassMe() {
 // loginUserGetAllUses(); //should fail
 // loginUserUpdateDisplaynameMe();
 
-loginUserUpdatePassMe();
+// loginUserUpdatePassMe();
+
+// loginAdminResetPass();
+// loginUserResetPass(); // should fail
