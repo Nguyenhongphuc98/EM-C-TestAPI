@@ -13,8 +13,8 @@ const USER_USERNAME = "phucdeptrai@gmail.com";
 // const USER_PASSWOD = "hehe_!passs";
 const USER_PASSWOD = "z2SiIVcm";
 
-const Host = "http://164.90.186.39:8080";
-// const Host = "http://localhost:8080";
+// const Host = "http://164.90.186.39:8080";
+const Host = "http://localhost:8080";
 
 
 let createdUserID = 2;
@@ -109,7 +109,7 @@ function reqlogin(username = USERNAME, password = PASSWORD) {
 
       const sessionId = resp.data.sessionId;
       const authenData = DataTransform.encryptWithPublicKey(JSON.stringify(auth), pubKey);
-      console.log('req login', sessionId, ' || ',  authenData);
+      console.log('req login', sessionId, ' || ', authenData);
       return [sessionId, authenData];
     });
   }).catch(e => {
@@ -190,10 +190,10 @@ function createUSer(sessionId) {
       })
     })
   }).then(result => {
-    return result.json().then( v => {
+    return result.json().then(v => {
       const user = DataTransform.aesDecrypt(v.data);
       createdUserID = user.id;
-      console.log("create user", v,  user);
+      console.log("create user", v, user);
     });
   });
 }
@@ -206,8 +206,8 @@ function allUSers(sessionId) {
       'sessionid': sessionId,
     },
   }).then(result => {
-    return result.json().then( v => {
-      console.log("get users", v,  DataTransform.aesDecrypt(v.data));
+    return result.json().then(v => {
+      console.log("get users", v, DataTransform.aesDecrypt(v.data));
     });
   });
 }
@@ -225,8 +225,8 @@ function updateDispalyName(sessionId) {
       })
     })
   }).then(result => {
-    return result.json().then( v => {
-      console.log("update users", v,  DataTransform.aesDecrypt(v.data));
+    return result.json().then(v => {
+      console.log("update users", v, DataTransform.aesDecrypt(v.data));
     });
   });
 }
@@ -245,22 +245,74 @@ function updatePassword(sessionId) {
       })
     })
   }).then(result => {
-    return result.json().then( v => {
-      console.log("update users", v,  DataTransform.aesDecrypt(v.data));
+    return result.json().then(v => {
+      console.log("update users", v, DataTransform.aesDecrypt(v.data));
     });
   });
 }
 
 function resetPassword(sessionId) {
-  return fetch(Host + "/api/v1/admin/reset/" + createdUserID, {
-    method: "get",
+  return fetch(Host + "/api/v1/admin", {
+    method: "post",
     headers: {
       'Content-Type': 'application/json',
       'sessionid': sessionId,
     },
+    body: JSON.stringify({
+      data: DataTransform.aesEncrypt({
+        uid: createdUserID,
+        reqid: generateRandomString(16),
+        createat: Date.now(),
+        type: "reset",
+      })
+    })
   }).then(result => {
-    return result.json().then( v => {
-      console.log("reset pass", v,  DataTransform.aesDecrypt(v.data));
+    return result.json().then(v => {
+      console.log("reset pass", v, DataTransform.aesDecrypt(v.data));
+    });
+  });
+}
+
+function lockAccount(sessionId) {
+  return fetch(Host + "/api/v1/admin", {
+    method: "post",
+    headers: {
+      'Content-Type': 'application/json',
+      'sessionid': sessionId,
+    },
+    body: JSON.stringify({
+      data: DataTransform.aesEncrypt({
+        uid: createdUserID,
+        reqid: generateRandomString(16),
+        createat: Date.now(),
+        type: "lock",
+      })
+    })
+  }).then(result => {
+    return result.json().then(v => {
+      console.log("lock account", v, DataTransform.aesDecrypt(v.data));
+    });
+  });
+}
+
+function unlockAccount(sessionId) {
+  return fetch(Host + "/api/v1/admin", {
+    method: "post",
+    headers: {
+      'Content-Type': 'application/json',
+      'sessionid': sessionId,
+    },
+    body: JSON.stringify({
+      data: DataTransform.aesEncrypt({
+        uid: createdUserID,
+        reqid: generateRandomString(16),
+        createat: Date.now(),
+        type: "unlock",
+      })
+    })
+  }).then(result => {
+    return result.json().then(v => {
+      console.log("lock account", v, DataTransform.aesDecrypt(v.data));
     });
   });
 }
@@ -337,6 +389,26 @@ async function loginUserResetPass() {
   await resetPassword(sessionId);
 }
 
+async function loginAdminLockAcc() {
+  const [sessionId, authData] = await reqlogin();
+  await login(sessionId, authData);
+  await lockAccount(sessionId);
+}
+
+
+async function loginAdminUnLockAcc() {
+  const [sessionId, authData] = await reqlogin();
+  await login(sessionId, authData);
+  await unlockAccount(sessionId);
+}
+
+async function loginUsernLockAcc() {
+  const [sessionId, authData] = await reqlogin(USER_USERNAME, USER_PASSWOD);
+  await login(sessionId, authData);
+  await lockAccount(sessionId);
+}
+
+
 
 // Keep node running
 // const interval = setInterval(() => {
@@ -356,3 +428,6 @@ async function loginUserResetPass() {
 
 // loginAdminResetPass();
 // loginUserResetPass(); // should fail
+// loginAdminLockAcc();
+// loginAdminUnLockAcc();
+loginUsernLockAcc();
