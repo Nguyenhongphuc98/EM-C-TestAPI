@@ -317,6 +317,125 @@ function unlockAccount(sessionId) {
   });
 }
 
+function createPKL(sessionId) {
+  return fetch(Host + "/api/v1/pkl", {
+    method: "post",
+    headers: {
+      'Content-Type': 'application/json',
+      'sessionid': sessionId,
+    },
+    body: JSON.stringify({
+      data: DataTransform.aesEncrypt({
+        attachedInvoiceId: "INVOID_ID",
+        date: Date.now(),
+        from: "Ha Noi",
+        to: "Lon Don",
+        etdFactory: "ETD FAct",
+        etdPort: 'port',
+        eta: 'etaaa',
+      })
+    })
+  }).then(result => {
+    return result.json().then(v => {
+      console.log("create pkl", v, DataTransform.aesDecrypt(v.data));
+    });
+  });
+}
+
+function getPKLs(sessionId) {
+  // get all pkl have invoice like INVOICE and create before ts
+  return fetch(Host + "/api/v1/pkl?kw=INV&ts=" + '2024-07-20T12:05:24.000Z', {
+    method: "get",
+    headers: {
+      'Content-Type': 'application/json',
+      'sessionid': sessionId,
+    },
+  }).then(result => {
+    return result.json().then(v => {
+      console.log("get pkls", v, DataTransform.aesDecrypt(v.data));
+    });
+  });
+}
+
+function getPKL(sessionId) {
+  // get all pkl have invoice like INVOICE and create before ts
+  return fetch(Host + "/api/v1/pkl/1", {
+    method: "get",
+    headers: {
+      'Content-Type': 'application/json',
+      'sessionid': sessionId,
+    },
+  }).then(result => {
+    return result.json().then(v => {
+      console.log("get pkl", v, DataTransform.aesDecrypt(v.data));
+    });
+  });
+}
+
+function createPKLItems(sessionId) {
+  return fetch(Host + "/api/v1/item", {
+    method: "post",
+    headers: {
+      'Content-Type': 'application/json',
+      'sessionid': sessionId,
+    },
+    body: JSON.stringify({
+      data: DataTransform.aesEncrypt({
+        pkl: 1,
+        items: [{
+          packageSeries: [1,4],
+          packageId: "GLFS76MWM",
+          po: "129173-NCH",
+          itemsInPackage: 20,
+          itemsUnit: "PCS",
+          netWeight: 5.2,
+          grossWeight: 5.5,
+          netWeightUnit: "KGS",
+          grossWeightUnit: "KGS",
+          width: 24,
+          length: 54,
+          height: 237,
+          sizeUnit: "CM",
+        },
+        {
+          packageSeries: [1,4],
+          packageId: "ABCS76MWM",
+          po: "129173-NCH",
+          itemsInPackage: 25,
+          itemsUnit: "PCS",
+          netWeight: 10,
+          grossWeight: 15.5,
+          netWeightUnit: "KGS",
+          grossWeightUnit: "KGS",
+          width: 24,
+          length: 54,
+          height: 237,
+          sizeUnit: "CM",
+        }]
+      })
+    })
+  }).then(result => {
+    return result.json().then(v => {
+      console.log("create pkl items", v, DataTransform.aesDecrypt(v.data));
+    });
+  });
+}
+
+function getPKLItems(sessionId) {
+  // get all pkl item in pkl have packageid like MWM and create before ts
+  return fetch(Host + "/api/v1/item?pkl=1&kw=MWM&ts=" + '2024-07-20T13:01:53.000Z', {
+    method: "get",
+    headers: {
+      'Content-Type': 'application/json',
+      'sessionid': sessionId,
+    },
+  }).then(result => {
+    return result.json().then(v => {
+      console.log("get pk items", v, DataTransform.aesDecrypt(v.data));
+    });
+  });
+}
+
 async function loginAuthLogoutAuth() {
   const [sessionId, authData] = await reqlogin();
   await login(sessionId, authData);
@@ -408,7 +527,36 @@ async function loginUsernLockAcc() {
   await lockAccount(sessionId);
 }
 
+async function loginAdminCreatePKL() {
+  const [sessionId, authData] = await reqlogin();
+  await login(sessionId, authData);
+  await createPKL(sessionId, authData);
+}
 
+async function loginAdminGetPKLs() {
+  const [sessionId, authData] = await reqlogin();
+  await login(sessionId, authData);
+  await getPKLs(sessionId, authData);
+}
+
+async function loginAdminGetPKL() {
+  const [sessionId, authData] = await reqlogin();
+  await login(sessionId, authData);
+  await getPKL(sessionId, authData);
+}
+
+
+async function loginAdminCreatePKLItems() {
+  const [sessionId, authData] = await reqlogin();
+  await login(sessionId, authData);
+  await createPKLItems(sessionId, authData);
+}
+
+async function loginAdminGetPKLItems() {
+  const [sessionId, authData] = await reqlogin();
+  await login(sessionId, authData);
+  await getPKLItems(sessionId, authData);
+}
 
 // Keep node running
 // const interval = setInterval(() => {
@@ -430,4 +578,11 @@ async function loginUsernLockAcc() {
 // loginUserResetPass(); // should fail
 // loginAdminLockAcc();
 // loginAdminUnLockAcc();
-loginUsernLockAcc();
+// loginUsernLockAcc();
+
+// loginAdminCreatePKL();
+// loginAdminGetPKL();
+loginAdminGetPKLs();
+
+// loginAdminCreatePKLItems();
+// loginAdminGetPKLItems();
