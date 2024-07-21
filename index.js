@@ -459,6 +459,66 @@ function deleterPkl(sessionId) {
   });
 }
 
+function addBundleSetting(sessionId) {
+  return fetch(Host + "/api/v1/setting/bundle", {
+    method: "post",
+    headers: {
+      'Content-Type': 'application/json',
+      'sessionid': sessionId,
+    },
+    body: JSON.stringify({
+      data: DataTransform.aesEncrypt({
+        settings: [{code: "ABDS", amount: 1}, {code: "YTUF", amount: 3}, {code: "LKOSAS", amount: 4}],
+        reqid: generateRandomString(16),
+        createat: Date.now(),
+        type: "add",
+      })
+    })
+  }).then(result => {
+    return result.json().then(v => {
+      console.log("add bundle setting", v, DataTransform.aesDecrypt(v.data));
+    });
+  });
+}
+
+
+function getBundleSettings(sessionId) {
+  return fetch(Host + "/api/v1/setting/bundle", {
+    method: "get",
+    headers: {
+      'Content-Type': 'application/json',
+      'sessionid': sessionId,
+    },
+  }).then(result => {
+    return result.json().then(v => {
+      console.log("get bundle settings", v, DataTransform.aesDecrypt(v.data));
+    });
+  });
+}
+
+function deleteBundleSetting(sessionId) {
+  return fetch(Host + "/api/v1/setting/bundle", {
+    method: "post",
+    headers: {
+      'Content-Type': 'application/json',
+      'sessionid': sessionId,
+    },
+    body: JSON.stringify({
+      data: DataTransform.aesEncrypt({
+        settings: [{code: "ABDS", amount: 1}],
+        reqid: generateRandomString(16),
+        createat: Date.now(),
+        type: "delete",
+      })
+    })
+  }).then(result => {
+    return result.json().then(v => {
+      console.log("remove bundle setting", v, DataTransform.aesDecrypt(v.data));
+    });
+  });
+}
+
+
 async function loginAuthLogoutAuth() {
   const [sessionId, authData] = await reqlogin();
   await login(sessionId, authData);
@@ -587,6 +647,15 @@ async function loginAdminDeletePKL() {
   await deleterPkl(sessionId, authData);
 }
 
+async function testBundleSetting() {
+  const [sessionId, authData] = await reqlogin();
+  await login(sessionId, authData);
+  await addBundleSetting(sessionId);
+  await getBundleSettings(sessionId);
+  await deleteBundleSetting(sessionId);
+  await getBundleSettings(sessionId);
+}
+
 // Keep node running
 // const interval = setInterval(() => {
 // }, 3000); 
@@ -611,8 +680,9 @@ async function loginAdminDeletePKL() {
 
 // loginAdminCreatePKL();
 // loginAdminGetPKL();
-loginAdminGetPKLs();
+// loginAdminGetPKLs();
 
 // loginAdminCreatePKLItems();
 // loginAdminGetPKLItems();
 // loginAdminDeletePKL();
+testBundleSetting();
