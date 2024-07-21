@@ -326,6 +326,7 @@ function createPKL(sessionId) {
     },
     body: JSON.stringify({
       data: DataTransform.aesEncrypt({
+        name: "Don Hang 22/11",
         attachedInvoiceId: "INVOID_ID",
         date: Date.now(),
         from: "Ha Noi",
@@ -344,7 +345,7 @@ function createPKL(sessionId) {
 
 function getPKLs(sessionId) {
   // get all pkl have invoice like INVOICE and create before ts
-  return fetch(Host + "/api/v1/pkl?kw=INV&ts=" + '2024-07-20T12:05:24.000Z', {
+  return fetch(Host + "/api/v1/pkl?kw=Do&ts=" + '2024-07-20T12:05:24.000Z', {
     method: "get",
     headers: {
       'Content-Type': 'application/json',
@@ -423,7 +424,7 @@ function createPKLItems(sessionId) {
 
 function getPKLItems(sessionId) {
   // get all pkl item in pkl have packageid like MWM and create before ts
-  return fetch(Host + "/api/v1/item?pkl=1&kw=MWM&ts=" + '2024-07-20T13:01:53.000Z', {
+  return fetch(Host + "/api/v1/item?pkl=1&kw=Do&tss=" + '2024-07-20T13:01:53.000Z', {
     method: "get",
     headers: {
       'Content-Type': 'application/json',
@@ -432,6 +433,28 @@ function getPKLItems(sessionId) {
   }).then(result => {
     return result.json().then(v => {
       console.log("get pk items", v, DataTransform.aesDecrypt(v.data));
+    });
+  });
+}
+
+function deleterPkl(sessionId) {
+  return fetch(Host + "/api/v1/pklm", {
+    method: "post",
+    headers: {
+      'Content-Type': 'application/json',
+      'sessionid': sessionId,
+    },
+    body: JSON.stringify({
+      data: DataTransform.aesEncrypt({
+        pid: 2,
+        reqid: generateRandomString(16),
+        createat: Date.now(),
+        type: "delete",
+      })
+    })
+  }).then(result => {
+    return result.json().then(v => {
+      console.log("delete pkl", v, DataTransform.aesDecrypt(v.data));
     });
   });
 }
@@ -558,6 +581,12 @@ async function loginAdminGetPKLItems() {
   await getPKLItems(sessionId, authData);
 }
 
+async function loginAdminDeletePKL() {
+  const [sessionId, authData] = await reqlogin();
+  await login(sessionId, authData);
+  await deleterPkl(sessionId, authData);
+}
+
 // Keep node running
 // const interval = setInterval(() => {
 // }, 3000); 
@@ -586,3 +615,4 @@ loginAdminGetPKLs();
 
 // loginAdminCreatePKLItems();
 // loginAdminGetPKLItems();
+// loginAdminDeletePKL();
