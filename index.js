@@ -345,7 +345,7 @@ function createPKL(sessionId) {
 
 function getPKLs(sessionId) {
   // get all pkl have invoice like INVOICE and create before ts
-  return fetch(Host + "/api/v1/pkl?kw=Do&ts=" + '2024-07-20T12:05:24.000Z', {
+  return fetch(Host + "/api/v1/pkl?kw=Do&tss=" + '2024-07-20T12:05:24.000Z', {
     method: "get",
     headers: {
       'Content-Type': 'application/json',
@@ -384,7 +384,7 @@ function createPKLItems(sessionId) {
       data: DataTransform.aesEncrypt({
         pkl: 1,
         items: [{
-          packageSeries: [1,4],
+          packageSeries: [1, 4],
           packageId: "GLFS76MWM",
           po: "129173-NCH",
           itemsInPackage: 20,
@@ -399,7 +399,7 @@ function createPKLItems(sessionId) {
           sizeUnit: "CM",
         },
         {
-          packageSeries: [1,4],
+          packageSeries: [1, 4],
           packageId: "ABCS76MWM",
           po: "129173-NCH",
           itemsInPackage: 25,
@@ -423,8 +423,9 @@ function createPKLItems(sessionId) {
 }
 
 function getPKLItems(sessionId) {
-  // get all pkl item in pkl have packageid like MWM and create before ts
-  return fetch(Host + "/api/v1/item?pkl=1&kw=Do&tss=" + '2024-07-20T13:01:53.000Z', {
+  // get all pkl item in pkl have packageid like Do and create before ts
+  ///api/v1/item?pkl=1&kw=Do&ts=" + '2024-07-20T13:01:53.000Z
+  return fetch(Host + "/api/v1/item?pkl=1", {
     method: "get",
     headers: {
       'Content-Type': 'application/json',
@@ -468,7 +469,7 @@ function addBundleSetting(sessionId) {
     },
     body: JSON.stringify({
       data: DataTransform.aesEncrypt({
-        settings: [{code: "ABDS", amount: 1}, {code: "YTUF", amount: 3}, {code: "LKOSAS", amount: 4}],
+        settings: [{ code: "ABDS", amount: 1 }, { code: "YTUF", amount: 3 }, { code: "LKOSAS", amount: 4 }],
         reqid: generateRandomString(16),
         createat: Date.now(),
         type: "add",
@@ -505,7 +506,7 @@ function deleteBundleSetting(sessionId) {
     },
     body: JSON.stringify({
       data: DataTransform.aesEncrypt({
-        settings: [{code: "ABDS", amount: 1}],
+        settings: [{ code: "ABDS", amount: 1 }],
         reqid: generateRandomString(16),
         createat: Date.now(),
         type: "delete",
@@ -514,6 +515,93 @@ function deleteBundleSetting(sessionId) {
   }).then(result => {
     return result.json().then(v => {
       console.log("remove bundle setting", v, DataTransform.aesDecrypt(v.data));
+    });
+  });
+}
+
+function creatExport(sessionId) {
+  return fetch(Host + "/api/v1/export", {
+    method: "post",
+    headers: {
+      'Content-Type': 'application/json',
+      'sessionid': sessionId,
+    },
+    body: JSON.stringify({
+      data: DataTransform.aesEncrypt({
+        pklIds: [1],
+        name: "Export 22-34",
+        gate: "GATE 123",
+        fcl: "FCLLDASDAS",
+        contNum: "AB45-CONTNUM",
+        contSize: "CONT -SIZE",
+        vehicle: "TRACK",
+        seal: "SEALLL",
+        customer: "CTY AKBF",
+      })
+    })
+  }).then(result => {
+    return result.json().then(v => {
+      console.log("create export", v, DataTransform.aesDecrypt(v.data));
+    });
+  });
+}
+
+function getExport(sessionId) {
+  // get all pkl item in pkl have packageid like MWM and create before ts
+  return fetch(Host + '/api/v1/export/1', {
+    method: "get",
+    headers: {
+      'Content-Type': 'application/json',
+      'sessionid': sessionId,
+    },
+  }).then(result => {
+    return result.json().then(v => {
+      console.log("get export", v, DataTransform.aesDecrypt(v.data));
+    });
+  });
+}
+
+function getExports(sessionId) {
+  // get all pkl export have export name like Ex and create before ts and status is 1
+  /**
+   * export enum PKLStatus {
+    Imported = 0,
+    Exporting = 1,
+    Exported = 2,
+  };
+   */
+  // /api/v1/export?kw=Ex&st=1&ts=2024-07-20T13:01:53.000Z
+  return fetch(Host + '/api/v1/export?kw=EX&stt=2', {
+    method: "get",
+    headers: {
+      'Content-Type': 'application/json',
+      'sessionid': sessionId,
+    },
+  }).then(result => {
+    return result.json().then(v => {
+      console.log("get export items", v, DataTransform.aesDecrypt(v.data));
+    });
+  });
+}
+
+function finishExport(sessionId) {
+  return fetch(Host + "/api/v1/exportm", {
+    method: "post",
+    headers: {
+      'Content-Type': 'application/json',
+      'sessionid': sessionId,
+    },
+    body: JSON.stringify({
+      data: DataTransform.aesEncrypt({
+        eid: 1,
+        reqid: generateRandomString(16),
+        createat: Date.now(),
+        type: "exported",
+      })
+    })
+  }).then(result => {
+    return result.json().then(v => {
+      console.log("finishExport", v, DataTransform.aesDecrypt(v.data));
     });
   });
 }
@@ -647,6 +735,21 @@ async function loginAdminDeletePKL() {
   await deleterPkl(sessionId, authData);
 }
 
+async function testPKL() {
+  const [sessionId, authData] = await reqlogin();
+  await login(sessionId, authData);
+  await createPKL(sessionId, authData);
+  await getPKLs(sessionId);
+  await getPKL(sessionId);
+}
+
+async function testPKLItems() {
+  const [sessionId, authData] = await reqlogin();
+  await login(sessionId, authData);
+  await createPKLItems(sessionId, authData);
+  await getPKLItems(sessionId);
+}
+
 async function testBundleSetting() {
   const [sessionId, authData] = await reqlogin();
   await login(sessionId, authData);
@@ -656,9 +759,18 @@ async function testBundleSetting() {
   await getBundleSettings(sessionId);
 }
 
+async function testExport() {
+  const [sessionId, authData] = await reqlogin();
+  await login(sessionId, authData);
+  // await creatExport(sessionId);
+  // await getExport(sessionId);
+  await getExports(sessionId);
+  // await finishExport(sessionId);
+}
+
 // Keep node running
 // const interval = setInterval(() => {
-// }, 3000); 
+// }, 3000);
 
 
 // START test
@@ -680,9 +792,11 @@ async function testBundleSetting() {
 
 // loginAdminCreatePKL();
 // loginAdminGetPKL();
-// loginAdminGetPKLs();
+loginAdminGetPKLs();
 
 // loginAdminCreatePKLItems();
 // loginAdminGetPKLItems();
 // loginAdminDeletePKL();
-testBundleSetting();
+// testBundleSetting();
+
+// testExport();
