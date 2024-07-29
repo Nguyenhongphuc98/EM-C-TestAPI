@@ -4,6 +4,7 @@ const { publicEncrypt } = require('crypto');
 const hash = require("pbkdf2-password")();
 const { AES, enc } = require("crypto-js");
 const io = require('socket.io-client');
+const { bundleCodes } = require('./bundlecode');
 
 
 const USERNAME = "admin@admin.com";
@@ -345,7 +346,8 @@ function createPKL(sessionId) {
 
 function getPKLs(sessionId) {
   // get all pkl have invoice like INVOICE and create before ts
-  return fetch(Host + "/api/v1/pkl?kw=Do&tss=" + '2024-07-20T12:05:24.000Z', {
+  // /api/v1/pkl?kw=Do&tss=" + '2024-07-20T12:05:24.000Z
+  return fetch(Host + "/api/v1/pkl", {
     method: "get",
     headers: {
       'Content-Type': 'application/json',
@@ -368,6 +370,7 @@ function getPKL(sessionId) {
     },
   }).then(result => {
     return result.json().then(v => {
+      // console.log('bbb', v);
       console.log("get pkl", v, DataTransform.aesDecrypt(v.data));
     });
   });
@@ -469,7 +472,7 @@ function addBundleSetting(sessionId) {
     },
     body: JSON.stringify({
       data: DataTransform.aesEncrypt({
-        settings: [{ code: "ABDS", amount: 1 }, { code: "YTUF", amount: 3 }, { code: "LKOSAS", amount: 4 }],
+        settings: bundleCodes,
         reqid: generateRandomString(16),
         createat: Date.now(),
         type: "add",
@@ -602,6 +605,21 @@ function finishExport(sessionId) {
   }).then(result => {
     return result.json().then(v => {
       console.log("finishExport", v, DataTransform.aesDecrypt(v.data));
+    });
+  });
+}
+
+// Dung de lay report va lay data lam ma QR
+function getWeighs(sessionId) {
+  return fetch(Host + "/api/v1/weigh?pkl=1", {
+    method: "get",
+    headers: {
+      'Content-Type': 'application/json',
+      'sessionid': sessionId,
+    }
+  }).then(result => {
+    return result.json().then(v => {
+      console.log("getWeighs", v, DataTransform.aesDecrypt(v.data));
     });
   });
 }
@@ -755,17 +773,23 @@ async function testBundleSetting() {
   await login(sessionId, authData);
   await addBundleSetting(sessionId);
   await getBundleSettings(sessionId);
-  await deleteBundleSetting(sessionId);
-  await getBundleSettings(sessionId);
+  // await deleteBundleSetting(sessionId);
+  // await getBundleSettings(sessionId);
 }
 
 async function testExport() {
   const [sessionId, authData] = await reqlogin();
   await login(sessionId, authData);
-  // await creatExport(sessionId);
-  // await getExport(sessionId);
+  await creatExport(sessionId);
+  await getExport(sessionId);
   await getExports(sessionId);
-  // await finishExport(sessionId);
+  await finishExport(sessionId);
+}
+
+async function loginGetWeighs() {
+  const [sessionId, authData] = await reqlogin();
+  await login(sessionId, authData);
+  await getWeighs(sessionId);
 }
 
 // Keep node running
@@ -792,11 +816,15 @@ async function testExport() {
 
 // loginAdminCreatePKL();
 // loginAdminGetPKL();
-loginAdminGetPKLs();
+// loginAdminGetPKLs();
 
 // loginAdminCreatePKLItems();
 // loginAdminGetPKLItems();
 // loginAdminDeletePKL();
 // testBundleSetting();
 
+// testPKL();
+// testPKLItems();
 // testExport();
+
+loginGetWeighs();
