@@ -334,7 +334,7 @@ function createPKL(sessionId) {
         to: "Lon Don",
         etdFactory: "ETD FAct",
         etdPort: 'port',
-        eta: 'etaaa',
+        eta: 'etaaa'
       })
     })
   }).then(result => {
@@ -346,8 +346,15 @@ function createPKL(sessionId) {
 
 function getPKLs(sessionId) {
   // get all pkl have invoice like INVOICE and create before ts
-  // /api/v1/pkl?kw=Do&tss=" + '2024-07-20T12:05:24.000Z
-  return fetch(Host + "/api/v1/pkl", {
+  // /api/v1/pkl?kw=Do&ts=" + '2024-07-20T12:05:24.000Z&wstt=1
+  /**
+   * WeighStatus {
+      NotStart = 0,
+      Weighting = 1,
+      Finished = 2,
+    }
+   */
+  return fetch(Host + "/api/v1/pkl?wstt=1", {
     method: "get",
     headers: {
       'Content-Type': 'application/json',
@@ -567,11 +574,12 @@ function getExport(sessionId) {
 function getExports(sessionId) {
   // get all pkl export have export name like Ex and create before ts and status is 1
   /**
-   * export enum PKLStatus {
-    Imported = 0,
-    Exporting = 1,
-    Exported = 2,
-  };
+   *
+   *  ExportStatus {
+        Imported = 0,
+        Exporting = 1,
+        Exported = 2,
+      }
    */
   // /api/v1/export?kw=Ex&st=1&ts=2024-07-20T13:01:53.000Z
   return fetch(Host + '/api/v1/export?kw=EX&stt=2', {
@@ -610,8 +618,8 @@ function finishExport(sessionId) {
 }
 
 // Dung de lay report va lay data lam ma QR
-function getWeighs(sessionId) {
-  return fetch(Host + "/api/v1/weigh?pkl=1", {
+function getSubitems(sessionId) {
+  return fetch(Host + "/api/v1/sitem?pkl=1", {
     method: "get",
     headers: {
       'Content-Type': 'application/json',
@@ -619,7 +627,36 @@ function getWeighs(sessionId) {
     }
   }).then(result => {
     return result.json().then(v => {
-      console.log("getWeighs", v, DataTransform.aesDecrypt(v.data));
+      console.log("getSubitems", v, DataTransform.aesDecrypt(v.data));
+    });
+  });
+}
+
+function startWeigh(sessionId) {
+  return fetch(Host + "/api/v1/weigh?pkl=1", {
+    method: "post",
+    headers: {
+      'Content-Type': 'application/json',
+      'sessionid': sessionId,
+    }
+  }).then(result => {
+    return result.json().then(v => {
+      console.log("startWeigh", v, DataTransform.aesDecrypt(v.data));
+    });
+  });
+}
+
+function getWeigh(sessionId) {
+  // get pklid.
+  return fetch(Host + "/api/v1/weigh/1", {
+    method: "get",
+    headers: {
+      'Content-Type': 'application/json',
+      'sessionid': sessionId,
+    }
+  }).then(result => {
+    return result.json().then(v => {
+      console.log("getWeigh", v, DataTransform.aesDecrypt(v.data));
     });
   });
 }
@@ -786,10 +823,22 @@ async function testExport() {
   await finishExport(sessionId);
 }
 
-async function loginGetWeighs() {
+async function loginGetSubitems() {
   const [sessionId, authData] = await reqlogin();
   await login(sessionId, authData);
-  await getWeighs(sessionId);
+  await getSubitems(sessionId);
+}
+
+async function loginStartWeigh() {
+  const [sessionId, authData] = await reqlogin();
+  await login(sessionId, authData);
+  await startWeigh(sessionId);
+}
+
+async function loginGetWeigh() {
+  const [sessionId, authData] = await reqlogin();
+  await login(sessionId, authData);
+  await getWeigh(sessionId);
 }
 
 // Keep node running
@@ -827,4 +876,6 @@ async function loginGetWeighs() {
 // testPKLItems();
 // testExport();
 
-loginGetWeighs();
+// loginGetSubitems();
+// loginStartWeigh();
+// loginGetWeigh();
