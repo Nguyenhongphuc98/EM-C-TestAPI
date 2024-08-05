@@ -119,7 +119,7 @@ function reqlogin(username = USERNAME, password = PASSWORD) {
 }
 
 function login(sessionId, authenData) {
-  return fetch(Host + "/api/v1/login", {
+  return fetch(Host + `/api/v1/login?sessionid=${sessionId}`, {
     method: 'post',
     credentials: "include",
     headers: {
@@ -435,11 +435,10 @@ function createPKLItems(sessionId) {
 function getPKLItems(sessionId) {
   // get all pkl item in pkl have packageid like Do and create before ts
   ///api/v1/item?pkl=1&kw=Do&ts=" + '2024-07-20T13:01:53.000Z
-  return fetch(Host + "/api/v1/item?pkl=1", {
+  return fetch(Host + `/api/v1/item?sessionid=${sessionId}&pkl=1&page=1`, {
     method: "get",
     headers: {
       'Content-Type': 'application/json',
-      'sessionid': sessionId,
     },
   }).then(result => {
     return result.json().then(v => {
@@ -530,18 +529,17 @@ function deleteBundleSetting(sessionId) {
 }
 
 function creatExport(sessionId) {
-  return fetch(Host + "/api/v1/export", {
+  return fetch(Host + `/api/v1/export?sessionid=${sessionId}`, {
     method: "post",
     headers: {
       'Content-Type': 'application/json',
-      'sessionid': sessionId,
     },
     body: JSON.stringify({
       data: DataTransform.aesEncrypt({
-        pklIds: [1],
-        name: "Export 22-34",
+        pklIds: [3],
+        name: "Export 5/8/24",
         gate: "GATE 123",
-        fcl: "FCLLDASDAS",
+        fcl: "FCL Phuc dep trai",
         contNum: "AB45-CONTNUM",
         contSize: "CONT -SIZE",
         vehicle: "TRACK",
@@ -558,11 +556,10 @@ function creatExport(sessionId) {
 
 function getExport(sessionId) {
   // get all pkl item in pkl have packageid like MWM and create before ts
-  return fetch(Host + '/api/v1/export/1', {
+  return fetch(Host + `/api/v1/export/8?sessionid=${sessionId}`, {
     method: "get",
     headers: {
       'Content-Type': 'application/json',
-      'sessionid': sessionId,
     },
   }).then(result => {
     return result.json().then(v => {
@@ -582,7 +579,7 @@ function getExports(sessionId) {
       }
    */
   // /api/v1/export?kw=Ex&st=1&ts=2024-07-20T13:01:53.000Z
-  return fetch(Host + '/api/v1/export?kw=EX&stt=2', {
+  return fetch(Host + `/api/v1/export?kw=EX&sessionid=${sessionId}`, {
     method: "get",
     headers: {
       'Content-Type': 'application/json',
@@ -596,11 +593,10 @@ function getExports(sessionId) {
 }
 
 function finishExport(sessionId) {
-  return fetch(Host + "/api/v1/exportm", {
+  return fetch(Host + `/api/v1/exportm?sessionid=${sessionId}`, {
     method: "post",
     headers: {
       'Content-Type': 'application/json',
-      'sessionid': sessionId,
     },
     body: JSON.stringify({
       data: DataTransform.aesEncrypt({
@@ -657,6 +653,35 @@ function getWeigh(sessionId) {
   }).then(result => {
     return result.json().then(v => {
       console.log("getWeigh", v, DataTransform.aesDecrypt(v.data));
+    });
+  });
+}
+
+function reportByInv(sessionId) {
+  // get pklid.
+  return fetch(Host + `/api/v1/report/inv/BPSVN2408?sessionid=${sessionId}`, {
+    method: "get",
+    headers: {
+      'Content-Type': 'application/json',
+    }
+  }).then(result => {
+    return result.json().then(v => {
+      console.log("reportByInv", v, DataTransform.aesDecrypt(v.data));
+    });
+  });
+}
+
+function reportByPO(sessionId) {
+  const po = 'PO#:BPS 12160059';
+  const encodedPo = encodeURIComponent(po);
+  return fetch(Host + `/api/v1/report/po/${encodedPo}?sessionid=${sessionId}&fromDate=${Date.now() - 24*60*60*1000}&toDate=${Date.now()}`, {
+    method: "get",
+    headers: {
+      'Content-Type': 'application/json',
+    }
+  }).then(result => {
+    return result.json().then(v => {
+      console.log("reportByPO", v, DataTransform.aesDecrypt(v.data));
     });
   });
 }
@@ -817,10 +842,10 @@ async function testBundleSetting() {
 async function testExport() {
   const [sessionId, authData] = await reqlogin();
   await login(sessionId, authData);
-  await creatExport(sessionId);
+  // await creatExport(sessionId);
   await getExport(sessionId);
-  await getExports(sessionId);
-  await finishExport(sessionId);
+  // await getExports(sessionId);
+  // await finishExport(sessionId);
 }
 
 async function loginGetSubitems() {
@@ -840,6 +865,14 @@ async function loginGetWeigh() {
   await login(sessionId, authData);
   await getWeigh(sessionId);
 }
+
+async function loginReport() {
+  const [sessionId, authData] = await reqlogin();
+  await login(sessionId, authData);
+  // await reportByInv(sessionId);
+  await reportByPO(sessionId);
+}
+
 
 // Keep node running
 // const interval = setInterval(() => {
@@ -879,3 +912,4 @@ async function loginGetWeigh() {
 // loginGetSubitems();
 // loginStartWeigh();
 // loginGetWeigh();
+loginReport();
