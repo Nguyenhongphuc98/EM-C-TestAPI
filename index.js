@@ -123,8 +123,7 @@ function login(sessionId, authenData) {
     method: 'post',
     credentials: "include",
     headers: {
-      'Content-Type': 'application/json',
-      'sessionid': sessionId,
+      'Content-Type': 'text/plain',
     },
     body: JSON.stringify({
       auth: authenData
@@ -145,7 +144,7 @@ function logout(sessionId) {
   return fetch(Host + "/api/v1/logout", {
     method: 'post',
     headers: {
-      'Content-Type': 'application/json',
+      'Content-Type': 'text/plain',
       'sessionid': sessionId,
     },
   }).then(v => {
@@ -162,7 +161,7 @@ function authen(sessionId) {
   return fetch(Host + "/api/v1/authenticate", {
     method: 'get',
     headers: {
-      'Content-Type': 'application/json',
+      'Content-Type': 'text/plain',
       'sessionid': sessionId,
     },
   }).then(v => {
@@ -180,7 +179,7 @@ function createUSer(sessionId) {
   return fetch(Host + "/api/v1/user", {
     method: "post",
     headers: {
-      'Content-Type': 'application/json',
+      'Content-Type': 'text/plain',
       'sessionid': sessionId,
     },
     body: JSON.stringify({
@@ -203,7 +202,7 @@ function allUSers(sessionId) {
   return fetch(Host + "/api/v1/user", {
     method: "get",
     headers: {
-      'Content-Type': 'application/json',
+      'Content-Type': 'text/plain',
       'sessionid': sessionId,
     },
   }).then(result => {
@@ -217,7 +216,7 @@ function updateDispalyName(sessionId) {
   return fetch(Host + "/api/v1/user/" + createdUserID, {
     method: "put",
     headers: {
-      'Content-Type': 'application/json',
+      'Content-Type': 'text/plain',
       'sessionid': sessionId,
     },
     body: JSON.stringify({
@@ -236,7 +235,7 @@ function updatePassword(sessionId) {
   return fetch(Host + "/api/v1/user/" + createdUserID, {
     method: "put",
     headers: {
-      'Content-Type': 'application/json',
+      'Content-Type': 'text/plain',
       'sessionid': sessionId,
     },
     body: JSON.stringify({
@@ -256,7 +255,7 @@ function resetPassword(sessionId) {
   return fetch(Host + "/api/v1/admin", {
     method: "post",
     headers: {
-      'Content-Type': 'application/json',
+      'Content-Type': 'text/plain',
       'sessionid': sessionId,
     },
     body: JSON.stringify({
@@ -278,7 +277,7 @@ function lockAccount(sessionId) {
   return fetch(Host + "/api/v1/admin", {
     method: "post",
     headers: {
-      'Content-Type': 'application/json',
+      'Content-Type': 'text/plain',
       'sessionid': sessionId,
     },
     body: JSON.stringify({
@@ -300,7 +299,7 @@ function unlockAccount(sessionId) {
   return fetch(Host + "/api/v1/admin", {
     method: "post",
     headers: {
-      'Content-Type': 'application/json',
+      'Content-Type': 'text/plain',
       'sessionid': sessionId,
     },
     body: JSON.stringify({
@@ -319,11 +318,10 @@ function unlockAccount(sessionId) {
 }
 
 function createPKL(sessionId) {
-  return fetch(Host + "/api/v1/pkl", {
+  return fetch(Host + `/api/v1/pkl?sessionid=${sessionId}`, {
     method: "post",
     headers: {
-      'Content-Type': 'application/json',
-      'sessionid': sessionId,
+      'Content-Type': 'text/plain',
     },
     body: JSON.stringify({
       data: DataTransform.aesEncrypt({
@@ -354,11 +352,10 @@ function getPKLs(sessionId) {
       Finished = 2,
     }
    */
-  return fetch(Host + "/api/v1/pkl?wstt=1", {
+  return fetch(Host + `/api/v1/pkl?sessionid=${sessionId}`, {
     method: "get",
     headers: {
-      'Content-Type': 'application/json',
-      'sessionid': sessionId,
+      'Content-Type': 'text/plain',
     },
   }).then(result => {
     return result.json().then(v => {
@@ -369,11 +366,10 @@ function getPKLs(sessionId) {
 
 function getPKL(sessionId) {
   // get all pkl have invoice like INVOICE and create before ts
-  return fetch(Host + "/api/v1/pkl/1", {
+  return fetch(Host + `/api/v1/pkl/1?sessionid=${sessionId}`, {
     method: "get",
     headers: {
-      'Content-Type': 'application/json',
-      'sessionid': sessionId,
+      'Content-Type': 'text/plain',
     },
   }).then(result => {
     return result.json().then(v => {
@@ -384,15 +380,14 @@ function getPKL(sessionId) {
 }
 
 function createPKLItems(sessionId) {
-  return fetch(Host + "/api/v1/item", {
+  return fetch(Host + `/api/v1/item?sessionid=${sessionId}`, {
     method: "post",
     headers: {
-      'Content-Type': 'application/json',
-      'sessionid': sessionId,
+      'Content-Type': 'text/plain',
     },
     body: JSON.stringify({
       data: DataTransform.aesEncrypt({
-        pkl: 1,
+        pkl: 3,
         items: [{
           packageSeries: [1, 4],
           packageId: "GLFS76MWM",
@@ -409,7 +404,7 @@ function createPKLItems(sessionId) {
           sizeUnit: "CM",
         },
         {
-          packageSeries: [1, 4],
+          packageSeries: [5, 7],
           packageId: "ABCS76MWM",
           po: "129173-NCH",
           itemsInPackage: 25,
@@ -435,10 +430,10 @@ function createPKLItems(sessionId) {
 function getPKLItems(sessionId) {
   // get all pkl item in pkl have packageid like Do and create before ts
   ///api/v1/item?pkl=1&kw=Do&ts=" + '2024-07-20T13:01:53.000Z
-  return fetch(Host + `/api/v1/item?sessionid=${sessionId}&pkl=1&page=1`, {
+  return fetch(Host + `/api/v1/item?sessionid=${sessionId}&pkl=3&page=1`, {
     method: "get",
     headers: {
-      'Content-Type': 'application/json',
+      'Content-Type': 'text/plain',
     },
   }).then(result => {
     return result.json().then(v => {
@@ -451,7 +446,7 @@ function deleterPkl(sessionId) {
   return fetch(Host + "/api/v1/pklm", {
     method: "post",
     headers: {
-      'Content-Type': 'application/json',
+      'Content-Type': 'text/plain',
       'sessionid': sessionId,
     },
     body: JSON.stringify({
@@ -470,11 +465,10 @@ function deleterPkl(sessionId) {
 }
 
 function addBundleSetting(sessionId) {
-  return fetch(Host + "/api/v1/setting/bundle", {
+  return fetch(Host + `/api/v1/setting/bundle?sessionid=${sessionId}`, {
     method: "post",
     headers: {
-      'Content-Type': 'application/json',
-      'sessionid': sessionId,
+      'Content-Type': 'text/plain'
     },
     body: JSON.stringify({
       data: DataTransform.aesEncrypt({
@@ -493,11 +487,10 @@ function addBundleSetting(sessionId) {
 
 
 function getBundleSettings(sessionId) {
-  return fetch(Host + "/api/v1/setting/bundle", {
+  return fetch(Host + `/api/v1/setting/bundle?sessionid=${sessionId}`, {
     method: "get",
     headers: {
-      'Content-Type': 'application/json',
-      'sessionid': sessionId,
+      'Content-Type': 'text/plain',
     },
   }).then(result => {
     return result.json().then(v => {
@@ -510,7 +503,7 @@ function deleteBundleSetting(sessionId) {
   return fetch(Host + "/api/v1/setting/bundle", {
     method: "post",
     headers: {
-      'Content-Type': 'application/json',
+      'Content-Type': 'text/plain',
       'sessionid': sessionId,
     },
     body: JSON.stringify({
@@ -532,11 +525,11 @@ function creatExport(sessionId) {
   return fetch(Host + `/api/v1/export?sessionid=${sessionId}`, {
     method: "post",
     headers: {
-      'Content-Type': 'application/json',
+      'Content-Type': 'text/plain',
     },
     body: JSON.stringify({
       data: DataTransform.aesEncrypt({
-        pklIds: [3],
+        pklIds: [4],
         name: "Export 5/8/24",
         gate: "GATE 123",
         fcl: "FCL Phuc dep trai",
@@ -559,7 +552,7 @@ function getExport(sessionId) {
   return fetch(Host + `/api/v1/export/8?sessionid=${sessionId}`, {
     method: "get",
     headers: {
-      'Content-Type': 'application/json',
+      'Content-Type': 'text/plain',
     },
   }).then(result => {
     return result.json().then(v => {
@@ -579,10 +572,10 @@ function getExports(sessionId) {
       }
    */
   // /api/v1/export?kw=Ex&st=1&ts=2024-07-20T13:01:53.000Z
-  return fetch(Host + `/api/v1/export?kw=EX&sessionid=${sessionId}`, {
+  return fetch(Host + `/api/v1/export?sessionid=${sessionId}&ts=${Date.now()}`, {
     method: "get",
     headers: {
-      'Content-Type': 'application/json',
+      'Content-Type': 'text/plain',
       'sessionid': sessionId,
     },
   }).then(result => {
@@ -596,7 +589,7 @@ function finishExport(sessionId) {
   return fetch(Host + `/api/v1/exportm?sessionid=${sessionId}`, {
     method: "post",
     headers: {
-      'Content-Type': 'application/json',
+      'Content-Type': 'text/plain',
     },
     body: JSON.stringify({
       data: DataTransform.aesEncrypt({
@@ -618,7 +611,7 @@ function getSubitems(sessionId) {
   return fetch(Host + "/api/v1/sitem?pkl=1", {
     method: "get",
     headers: {
-      'Content-Type': 'application/json',
+      'Content-Type': 'text/plain',
       'sessionid': sessionId,
     }
   }).then(result => {
@@ -629,15 +622,37 @@ function getSubitems(sessionId) {
 }
 
 function startWeigh(sessionId) {
-  return fetch(Host + "/api/v1/weigh?pkl=1", {
+  return fetch(Host + `/api/v1/sweigh?sessionid=${sessionId}`, {
     method: "post",
     headers: {
-      'Content-Type': 'application/json',
-      'sessionid': sessionId,
-    }
+      'Content-Type': 'text/plain',
+    },
+    body: JSON.stringify({
+      data: DataTransform.aesEncrypt({
+        pklid: 3,
+      })
+    })
   }).then(result => {
     return result.json().then(v => {
       console.log("startWeigh", v, DataTransform.aesDecrypt(v.data));
+    });
+  });
+}
+
+function endWeigh(sessionId) {
+  return fetch(Host + `/api/v1/eweigh?sessionid=${sessionId}`, {
+    method: "post",
+    headers: {
+      'Content-Type': 'text/plain',
+    },
+    body: JSON.stringify({
+      data: DataTransform.aesEncrypt({
+        pklid: 3,
+      })
+    })
+  }).then(result => {
+    return result.json().then(v => {
+      console.log("endWeigh", v, DataTransform.aesDecrypt(v.data));
     });
   });
 }
@@ -647,7 +662,7 @@ function getWeigh(sessionId) {
   return fetch(Host + "/api/v1/weigh/1", {
     method: "get",
     headers: {
-      'Content-Type': 'application/json',
+      'Content-Type': 'text/plain',
       'sessionid': sessionId,
     }
   }).then(result => {
@@ -662,7 +677,7 @@ function reportByInv(sessionId) {
   return fetch(Host + `/api/v1/report/inv/BPSVN2408?sessionid=${sessionId}`, {
     method: "get",
     headers: {
-      'Content-Type': 'application/json',
+      'Content-Type': 'text/plain',
     }
   }).then(result => {
     return result.json().then(v => {
@@ -677,11 +692,87 @@ function reportByPO(sessionId) {
   return fetch(Host + `/api/v1/report/po/${encodedPo}?sessionid=${sessionId}&fromDate=${Date.now() - 24*60*60*1000}&toDate=${Date.now()}`, {
     method: "get",
     headers: {
-      'Content-Type': 'application/json',
+      'Content-Type': 'text/plain',
     }
   }).then(result => {
     return result.json().then(v => {
       console.log("reportByPO", v, DataTransform.aesDecrypt(v.data));
+    });
+  });
+}
+
+function reportExportByDate(sessionId) {
+  return fetch(Host + `/api/v1/report/ect?sessionid=${sessionId}&fromDate=${Date.now() - 20*24*60*60*1000}&toDate=${Date.now()}`, {
+    method: "get",
+    headers: {
+      'Content-Type': 'text/plain',
+      'sessionid': sessionId,
+    },
+  }).then(result => {
+    return result.json().then(v => {
+      console.log("reportExportByDate", v, DataTransform.aesDecrypt(v.data));
+    });
+  });
+}
+
+function reportExportSummaryByDate(sessionId) {
+  return fetch(Host + `/api/v1/report/est?sessionid=${sessionId}&fromDate=${Date.now() - 20*24*60*60*1000}&toDate=${Date.now()}`, {
+    method: "get",
+    headers: {
+      'Content-Type': 'text/plain',
+      'sessionid': sessionId,
+    },
+  }).then(result => {
+    return result.json().then(v => {
+      console.log("reportExportSummaryByDate", v, DataTransform.aesDecrypt(v.data));
+    });
+  });
+}
+
+function reportExportSummaryByCustomer(sessionId) {
+  return fetch(Host + `/api/v1/report/esc/${encodeURIComponent("CTYXAKBF")}?sessionid=${sessionId}&fromDate=${Date.now() - 20*24*60*60*1000}&toDate=${Date.now()}`, {
+    method: "get",
+    headers: {
+      'Content-Type': 'text/plain',
+      'sessionid': sessionId,
+    },
+  }).then(result => {
+    return result.json().then(v => {
+      console.log("reportExportSummaryByCustomer", v, DataTransform.aesDecrypt(v.data));
+    });
+  });
+}
+
+
+function reportOverview(sessionId) {
+  return fetch(Host + `/api/v1/report/overview?sessionid=${sessionId}`, {
+    method: "get",
+    headers: {
+      'Content-Type': 'text/plain',
+    }
+  }).then(result => {
+    return result.json().then(v => {
+      console.log("reportOverview", v, DataTransform.aesDecrypt(v.data));
+    });
+  });
+}
+
+function updateWeighPC(sessionId) {
+  return fetch(Host + `/api/v1/weigh/5?sessionid=${sessionId}`, {
+    method: "post",
+    headers: {
+      'Content-Type': 'text/plain',
+    },
+    body: JSON.stringify({
+      data: DataTransform.aesEncrypt({
+        sid: 630,
+        weigh: 5.9,
+        reqid: generateRandomString(16),
+      })
+    })
+  }).then(result => {
+    return result.json().then(v => {
+      console.log("updateWeighPC", v, DataTransform.aesDecrypt(v.data));
     });
   });
 }
@@ -843,8 +934,8 @@ async function testExport() {
   const [sessionId, authData] = await reqlogin();
   await login(sessionId, authData);
   // await creatExport(sessionId);
-  await getExport(sessionId);
-  // await getExports(sessionId);
+  // await getExport(sessionId);
+  await getExports(sessionId);
   // await finishExport(sessionId);
 }
 
@@ -866,11 +957,33 @@ async function loginGetWeigh() {
   await getWeigh(sessionId);
 }
 
+async function loginEndWeigh() {
+  const [sessionId, authData] = await reqlogin();
+  await login(sessionId, authData);
+  await endWeigh(sessionId);
+}
+
 async function loginReport() {
   const [sessionId, authData] = await reqlogin();
   await login(sessionId, authData);
   // await reportByInv(sessionId);
-  await reportByPO(sessionId);
+  // await reportByPO(sessionId);
+  // await reportExportByDate(sessionId);
+  // await reportExportSummaryByDate(sessionId);
+  await reportExportSummaryByCustomer(sessionId);
+}
+
+async function loginReportOverView() {
+  const [sessionId, authData] = await reqlogin();
+  await login(sessionId, authData);
+  await reportOverview(sessionId);
+}
+
+
+async function loginUpdateWeighPC() {
+  const [sessionId, authData] = await reqlogin();
+  await login(sessionId, authData);
+  await updateWeighPC(sessionId);
 }
 
 
@@ -912,4 +1025,8 @@ async function loginReport() {
 // loginGetSubitems();
 // loginStartWeigh();
 // loginGetWeigh();
-loginReport();
+// loginEndWeigh();
+// loginReport();
+
+// loginReportOverView();
+loginUpdateWeighPC();
